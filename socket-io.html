@@ -1,0 +1,67 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<script src="../socket.io-client/dist/socket.io.js"></script>
+
+<dom-module id="socket-io">
+  <template>
+
+  </template>
+
+  <script>
+    class SocketIO extends Polymer.Element {
+      static get is() {
+        return 'socket-io';
+      }
+
+      static get properties() {
+        return {
+          endpoint: {
+            type: String,
+            value: undefined
+          },
+          connected: {
+            type: Boolean,
+            readOnly: true,
+            notify: true,
+            value: false,
+            reflectToAttribute: true
+          },
+          events: {
+            type: Object,
+            value: {}
+          }
+        }
+      }
+
+      constructor() {
+        super();
+
+        this.socket = null;
+      }
+
+      connectedCallback() {
+        this.socket = io(this.endpoint);
+
+        this.socket.on('connected', () => this._onConnect());
+        this.socket.on('disconnected', () => this._onDisconnect());
+
+        Object.keys(this.events).forEach((key) => {
+          this.socket.on(key, this.events[key]);
+        })
+      }
+
+      emit(key, value) {
+        this.socket.emit(key, value);
+      }
+
+      _onConnect() {
+        this._setConnected(true);
+      }
+
+      _onDisconnect() {
+        this._setConnected(false);
+      }
+    }
+
+    window.customElements.define(SocketIO.is, SocketIO);
+  </script>
+</dom-module>
